@@ -30,7 +30,7 @@ export class MealPlannerService {
     const planData = await this.generateWithClaude(preferences, recipes, feedback);
 
     // Create meal plan object
-    const weekStart = this.getNextMonday();
+    const weekStart = this.getCurrentWeekMonday();
     const mealPlan = {
       id: Date.now().toString(),
       weekStart: weekStart.toISOString().split('T')[0],
@@ -122,7 +122,22 @@ CRITICAL: Your entire response must be ONLY a valid JSON object. DO NOT include 
       if (match) responseText = match[1];
     }
 
-    return JSON.parse(responseText);
+    const planData = JSON.parse(responseText);
+    
+    // Match recipe names to IDs from Mealie
+    planData.meal_plan = planData.meal_plan.map(meal => {
+      const recipe = recipes.find(
+        r => r.name.toLowerCase() === meal.recipe_name.toLowerCase()
+      );
+      
+      return {
+        ...meal,
+        recipe_id: recipe ? recipe.id : null,
+        recipe_slug: recipe ? recipe.slug : meal.recipe_name.toLowerCase().replace(/\s+/g, '-')
+      };
+    });
+
+    return planData;
   }
 
   async approveMealPlan(planId, modifications = null) {
@@ -134,56 +149,50 @@ CRITICAL: Your entire response must be ONLY a valid JSON object. DO NOT include 
       plan.meals = modifications.meals;
     }
 
-    // Generate shopping list from recipes
-    plan.shoppingList = await this.generateShoppingList(plan.meals);
     plan.status = 'approved';
     plan.approvedAt = new Date().toISOString();
 
     await db.write();
 
-    // Sync to Mealie
+    // Sync to Mealie (includes shopping list creation)
     await this.syncToMealie(plan);
 
     return plan;
   }
 
-  async generateShoppingList(meals) {
-    const ingredients = [];
-    
-    for (const meal of meals) {
-      // Find recipe in Mealie
-      const recipes = await this.mealie.getRecipes();
-      const recipe = recipes.find(
-        r => r.name.toLowerCase() === meal.recipe_name.toLowerCase()
+  async generateShoppingListForPlan(plan) {
+    try {
+      const weekStart = new Date(plan.weekStart);
+      const weekEnd = new Date(weekStart.getTime() + 6 * 24 * 60 * 60 * 1000);
+      
+      console.log(`Generating shopping list for meal plan week: ${plan.weekStart} to ${weekEnd.toISOString().split('T')[0]}`);
+      
+      // Use the updated Mealie client method to create shopping list from meal plan
+      const result = await this.mealie.createShoppingListFromMealPlan(
+        plan.weekStart,
+        weekEnd.toISOString().split('T')[0]
       );
-
-      if (recipe) {
-        const details = await this.mealie.getRecipeDetails(recipe.id);
-        if (details.recipeIngredient) {
-          details.recipeIngredient.forEach(ing => {
-            ingredients.push({
-              name: ing.food?.name || ing.note || ing.original_text,
-              quantity: ing.quantity || 1,
-              unit: ing.unit?.name || '',
-              recipe: meal.recipe_name
-            });
-          });
-        }
-      }
-    }
-
-    // Consolidate duplicate ingredients
-    const consolidated = {};
-    ingredients.forEach(ing => {
-      const key = ing.name.toLowerCase();
-      if (consolidated[key]) {
-        consolidated[key].quantity += ing.quantity;
+      
+      if (result.success) {
+        // Store shopping list info in the plan
+        plan.mealieShoppingList = {
+          id: result.shoppingListId,
+          name: result.shoppingList.name,
+          isExisting: result.isExisting,
+          recipesAdded: result.recipesAdded,
+          createdAt: new Date().toISOString()
+        };
+        
+        console.log(`Shopping list ${result.isExisting ? 'updated' : 'created'}: ${result.shoppingList.name}`);
+        return result;
       } else {
-        consolidated[key] = ing;
+        console.error('Failed to generate shopping list:', result.message);
+        throw new Error(`Failed to generate shopping list: ${result.message}`);
       }
-    });
-
-    return Object.values(consolidated);
+    } catch (error) {
+      console.error('Error generating shopping list for plan:', error.message);
+      throw error;
+    }
   }
 
   async placeGroceryOrder(planId, pickupTime) {
@@ -192,22 +201,42 @@ CRITICAL: Your entire response must be ONLY a valid JSON object. DO NOT include 
     if (!plan) throw new Error('Plan not found');
     if (plan.status !== 'approved') throw new Error('Plan must be approved first');
 
+    // Ensure shopping list exists
+    if (!plan.mealieShoppingList?.id) {
+      console.log('No Mealie shopping list found, generating one...');
+      await this.generateShoppingListForPlan(plan);
+      await db.write();
+    }
+
+    // Get shopping list from Mealie to extract ingredients for Instacart
+    const shoppingLists = await this.mealie.getShoppingLists();
+    const currentShoppingList = shoppingLists.find(list => list.id === plan.mealieShoppingList.id);
+    
+    if (!currentShoppingList) {
+      throw new Error('Shopping list not found in Mealie');
+    }
+
     // Create cart
     const cart = await this.instacart.createCart(configuration.instacart.storeId);
 
-    // Search and add items
+    // Extract items from Mealie shopping list and search for products
     const cartItems = [];
-    for (const item of plan.shoppingList) {
-      const products = await this.instacart.searchProducts(
-        item.name,
-        configuration.instacart.storeId
-      );
+    const shoppingItems = currentShoppingList.listItems || [];
+    
+    for (const item of shoppingItems) {
+      const itemName = item.food?.name || item.note || item.display;
+      if (itemName) {
+        const products = await this.instacart.searchProducts(
+          itemName,
+          configuration.instacart.storeId
+        );
 
-      if (products.length > 0) {
-        cartItems.push({
-          product_id: products[0].id,
-          quantity: Math.max(1, Math.floor(item.quantity))
-        });
+        if (products.length > 0) {
+          cartItems.push({
+            product_id: products[0].id,
+            quantity: Math.max(1, Math.floor(item.quantity || 1))
+          });
+        }
       }
     }
 
@@ -227,6 +256,8 @@ CRITICAL: Your entire response must be ONLY a valid JSON object. DO NOT include 
       orderId: order.id,
       cartId: cart.id,
       pickupTime,
+      shoppingListId: plan.mealieShoppingList.id,
+      itemsOrdered: cartItems.length,
       createdAt: new Date().toISOString()
     });
 
@@ -240,23 +271,34 @@ CRITICAL: Your entire response must be ONLY a valid JSON object. DO NOT include 
     const weekStart = new Date(plan.weekStart);
     const weekEnd = new Date(weekStart.getTime() + 6 * 24 * 60 * 60 * 1000);
 
-    // Create meal plan
-    await this.mealie.createMealPlan(
+    console.log(`Syncing meal plan to Mealie for week: ${plan.weekStart} to ${weekEnd.toISOString().split('T')[0]}`);
+
+    // Create or update meal plan in Mealie
+    const mealPlanResult = await this.mealie.createOrUpdateMealPlan(
       plan.weekStart,
       weekEnd.toISOString().split('T')[0],
       plan.meals
     );
 
-    // Create shopping list
-    if (plan.shoppingList.length > 0) {
-      await this.mealie.createShoppingList(plan.shoppingList);
+    console.log(`Meal plan sync result:`, mealPlanResult.message);
+
+    // Generate shopping list from the meal plan
+    try {
+      const shoppingListResult = await this.generateShoppingListForPlan(plan);
+      console.log(`Shopping list sync result:`, shoppingListResult.message);
+      
+      // Save the updated plan with shopping list info
+      await db.write();
+    } catch (error) {
+      console.error('Failed to generate shopping list during sync:', error.message);
+      // Don't throw error here - meal plan sync was successful
     }
   }
 
-  getNextMonday() {
+  getCurrentWeekMonday() {
     const today = new Date();
     const dayOfWeek = today.getDay();
-    const daysUntilMonday = dayOfWeek === 0 ? 1 : 8 - dayOfWeek;
-    return new Date(today.getTime() + daysUntilMonday * 24 * 60 * 60 * 1000);
+    const daysBackToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+    return new Date(today.getTime() - daysBackToMonday * 24 * 60 * 60 * 1000);
   }
 }

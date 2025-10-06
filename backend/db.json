@@ -21,93 +21,71 @@
   },
   "mealPlans": [
     {
-      "id": "1759775088929",
-      "weekStart": "2025-09-29",
+      "id": "1759794102407",
+      "weekStart": "2025-10-06",
       "meals": [
         {
           "day": "Monday",
-          "recipe_name": "Pan-Seared Steak with Garlic Butter",
-          "reason": "A protein-rich, gluten-free dinner that's simple to prepare and avoids all allergens and dislikes."
+          "recipe_name": "Gluten-Free Meatballs (Authentic Italian-Style!)",
+          "reason": "Perfect gluten-free dinner that's hearty and Italian-inspired, similar to pizza flavors you love.",
+          "recipe_id": "3f08a87f-cd1a-4d96-914c-4e34a913e1bd",
+          "recipe_slug": "gluten-free-meatballs-authentic-italian-style"
         },
         {
           "day": "Tuesday",
-          "recipe_name": "Gluten-Free Pizza with Pepperoni",
-          "reason": "Satisfies the pizza preference while using gluten-free crust to accommodate dietary restrictions."
+          "recipe_name": "Egg Roll In A Bowl (Easy 15-Minute Dinner)",
+          "reason": "Quick 15-minute gluten-free Asian-inspired meal with pork and vegetables for variety.",
+          "recipe_id": "c96e6c11-6be7-43a7-86a7-e3574fe7dba5",
+          "recipe_slug": "egg-roll-in-a-bowl-easy-15-minute-dinner"
         },
         {
           "day": "Wednesday",
-          "recipe_name": "Grilled Chicken with Roasted Vegetables",
-          "reason": "A balanced, naturally gluten-free meal with lean protein and nutritious vegetables."
+          "recipe_name": "Tuscan Chicken Pasta",
+          "reason": "Creamy, comforting pasta dish (use gluten-free pasta) with rich Italian flavors reminiscent of pizza preferences.",
+          "recipe_id": "3a421d2d-8a2a-42d0-bae8-639462535ffa",
+          "recipe_slug": "tuscan-chicken-pasta"
         },
         {
           "day": "Thursday",
-          "recipe_name": "Baked Salmon with Rice Pilaf",
-          "reason": "Provides omega-3 fatty acids and is naturally gluten-free with a satisfying rice side."
+          "recipe_name": "Beef and Broccoli",
+          "reason": "Classic gluten-free stir-fry that's naturally free from allergens and provides Asian cuisine variety.",
+          "recipe_id": "942e239f-14ed-47c0-ab16-dfd337859b82",
+          "recipe_slug": "beef-and-broccoli"
         },
         {
           "day": "Friday",
-          "recipe_name": "Gluten-Free Margherita Pizza",
-          "reason": "Another pizza option to satisfy preferences while maintaining dietary restrictions."
+          "recipe_name": "Caprese Quiche",
+          "reason": "Italian-inspired dish with tomatoes, mozzarella, and basil - similar flavors to pizza in a gluten-free quiche format.",
+          "recipe_id": "348ca4a1-b71f-4aae-9933-80fca227b448",
+          "recipe_slug": "caprese-quiche"
         },
         {
           "day": "Saturday",
-          "recipe_name": "Pork Tenderloin with Sweet Potato Mash",
-          "reason": "A hearty, gluten-free weekend dinner with naturally sweet and nutritious sides."
+          "recipe_name": "Cheesy Chili Mac Recipe",
+          "reason": "Comfort food combining chili and mac and cheese (use gluten-free pasta) for a hearty weekend meal.",
+          "recipe_id": "12ef2b5f-d026-4808-9bbb-07a758ecb1c5",
+          "recipe_slug": "cheesy-chili-mac-recipe"
         },
         {
           "day": "Sunday",
-          "recipe_name": "Beef Stir-Fry with Rice",
-          "reason": "A quick, gluten-free meal using tamari instead of soy sauce for flavor variety."
+          "recipe_name": "Thai Pineapple Fried Rice",
+          "reason": "Naturally gluten-free rice dish with sweet and savory flavors to end the week with international cuisine.",
+          "recipe_id": "16a83f7c-6db9-466b-a7cc-25b166abf0cc",
+          "recipe_slug": "thai-pineapple-fried-rice"
         }
       ],
-      "notes": "This plan incorporates pizza twice to satisfy preferences while ensuring all meals are gluten-free. Since only 2 recipes were provided, I've suggested 5 additional gluten-free meals that avoid peanuts and provide nutritional variety throughout the week.",
-      "shoppingList": [
-        {
-          "name": "beef steak",
-          "quantity": 2,
-          "unit": "pound",
-          "recipe": "Pan-Seared Steak with Garlic Butter"
-        },
-        {
-          "name": "vegetable oil",
-          "quantity": 0.5,
-          "unit": "tablespoon",
-          "recipe": "Pan-Seared Steak with Garlic Butter"
-        },
-        {
-          "name": "grey sea salt",
-          "quantity": 1.5,
-          "unit": "teaspoon",
-          "recipe": "Pan-Seared Steak with Garlic Butter"
-        },
-        {
-          "name": "black pepper",
-          "quantity": 1,
-          "unit": "teaspoon",
-          "recipe": "Pan-Seared Steak with Garlic Butter"
-        },
-        {
-          "name": "unsalted butter",
-          "quantity": 2,
-          "unit": "tablespoon",
-          "recipe": "Pan-Seared Steak with Garlic Butter"
-        },
-        {
-          "name": "garlic",
-          "quantity": 2,
-          "unit": "clove",
-          "recipe": "Pan-Seared Steak with Garlic Butter"
-        },
-        {
-          "name": "fresh rosemary",
-          "quantity": 1,
-          "unit": "sprig",
-          "recipe": "Pan-Seared Steak with Garlic Butter"
-        }
-      ],
+      "notes": "All meals are naturally gluten-free or can be made gluten-free with simple substitutions. Several Italian-inspired dishes cater to pizza preferences. All recipes avoid peanuts and can be completed within 60 minutes.",
+      "shoppingList": [],
       "status": "approved",
-      "createdAt": "2025-10-06T18:24:48.929Z",
-      "approvedAt": "2025-10-06T18:31:16.937Z"
+      "createdAt": "2025-10-06T23:41:42.407Z",
+      "approvedAt": "2025-10-06T23:41:48.489Z",
+      "mealieShoppingList": {
+        "id": "fc927155-17d2-4657-8375-341d03b55d10",
+        "name": "Weekly Shopping - 2025-10-06",
+        "isExisting": true,
+        "recipesAdded": 7,
+        "createdAt": "2025-10-06T23:41:56.331Z"
+      }
     }
   ],
   "feedback": [],

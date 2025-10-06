@@ -41,7 +41,7 @@ export default function App() {
       const data = await res.json();
       setMealPlan(data);
     } catch (error) {
-      alert('Failed to generate meal plan: ' + error.message);
+      console.log('Failed to generate meal plan: ' + error.message);
     } finally {
       setLoading(false);
     }
@@ -57,9 +57,9 @@ export default function App() {
       });
       const data = await res.json();
       setMealPlan(data);
-      alert('Meal plan approved! Shopping list generated.');
+      console.log('Meal plan approved! Shopping list generated.');
     } catch (error) {
-      alert('Failed to approve: ' + error.message);
+      console.log('Failed to approve: ' + error.message);
     } finally {
       setLoading(false);
     }
@@ -279,10 +279,10 @@ function OrderButton({ planId }) {
         body: JSON.stringify({ planId, pickupTime })
       });
       const data = await res.json();
-      alert('Order placed successfully! Check your Instacart account for details.');
+      console.log('Order placed successfully! Check your Instacart account for details.');
       setShowModal(false);
     } catch (error) {
-      alert('Failed to place order: ' + error.message);
+      console.log('Failed to place order: ' + error.message);
     } finally {
       setLoading(false);
     }
@@ -347,9 +347,9 @@ function FeedbackForm({ planId }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...feedback, planId })
       });
-      alert('Feedback submitted! This will improve next week\'s plan.');
+      console.log('Feedback submitted! This will improve next week\'s plan.');
     } catch (error) {
-      alert('Failed to submit feedback');
+      console.log('Failed to submit feedback');
     }
   };
 
@@ -408,9 +408,9 @@ function PreferencesView({ preferences, onSave }) {
         body: JSON.stringify(prefs)
       });
       onSave(prefs);
-      alert('Preferences saved successfully!');
+      console.log('Preferences saved successfully!');
     } catch (error) {
-      alert('Failed to save preferences');
+      console.log('Failed to save preferences');
     }
   };
 
