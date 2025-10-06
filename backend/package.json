@@ -10,6 +10,7 @@
     "@anthropic-ai/sdk": "^0.30.0",
     "axios": "^1.7.9",
     "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
     "express": "^4.21.2",
     "lowdb": "^7.0.1",
     "node-cron": "^3.0.3"

@@ -1,4 +1,5 @@
 // server.js - Main backend service
+import { config } from 'dotenv';
 import express from 'express';
 import cors from 'cors';
 import cron from 'node-cron';
@@ -10,6 +11,10 @@ import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
+const __root = join(__dirname, '..');
+
+// Load .env from project root
+config({ path: join(__root, '.env') });
 
 // Initialize Express
 const app = express();
@@ -19,11 +24,20 @@ app.use(express.json());
 // Database setup (using lowdb for simplicity - can swap to PostgreSQL)
 const adapter = new JSONFile(join(__dirname, 'db.json'));
 const db = new Low(adapter, {});
+
+// Initialize database with proper structure
 await db.read();
-db.data ||= { preferences: null, mealPlans: [], feedback: [], orders: [] };
+db.data ||= {};
+db.data.preferences ||= null;
+db.data.mealPlans ||= [];
+db.data.feedback ||= [];
+db.data.orders ||= [];
+
+// Write initial structure if needed
+await db.write();
 
 // Configuration
-const config = {
+const configuration = {
   mealie: {
     url: process.env.MEALIE_URL || 'http://localhost:9000',
     token: process.env.MEALIE_TOKEN
@@ -39,7 +53,14 @@ const config = {
 };
 
 // Clients
-const anthropic = new Anthropic({ apiKey: config.anthropic.apiKey });
+const anthropic = new Anthropic({ apiKey: configuration.anthropic.apiKey });
+
+// Debug: Verify environment variables loaded
+console.log('🔍 Environment check:');
+console.log('  - Mealie URL:', configuration.mealie.url);
+console.log('  - Mealie Token:', configuration.mealie.token ? '✓ Set' : '✗ Missing');
+console.log('  - Anthropic Key:', configuration.anthropic.apiKey ? '✓ Set' : '✗ Missing');
+console.log('  - Instacart Token:', configuration.instacart.accessToken ? '✓ Set' : '✗ Missing');
 
 // ===== MEALIE CLIENT =====
 class MealieClient {
@@ -175,10 +196,10 @@ class InstacartClient {
 // ===== MEAL PLANNING SERVICE =====
 class MealPlannerService {
   constructor() {
-    this.mealie = new MealieClient(config.mealie.url, config.mealie.token);
+    this.mealie = new MealieClient(configuration.mealie.url, configuration.mealie.token);
     this.instacart = new InstacartClient(
-      config.instacart.accessToken,
-      config.instacart.retailerId
+      configuration.instacart.accessToken,
+      configuration.instacart.retailerId
     );
   }
 
@@ -190,7 +211,7 @@ class MealPlannerService {
       throw new Error('No preferences configured');
     }
 
-    const feedback = db.data.feedback.slice(-5); // Last 5 feedbacks
+    const feedback = (db.data.feedback || []).slice(-5); // Last 5 feedbacks
     const recipes = await this.mealie.getRecipes();
 
     // Generate plan using Claude
@@ -209,6 +230,7 @@ class MealPlannerService {
     };
 
     // Save to database
+    db.data.mealPlans ||= [];
     db.data.mealPlans.push(mealPlan);
     await db.write();
 
@@ -292,7 +314,8 @@ CRITICAL: Your entire response must be ONLY a valid JSON object. DO NOT include 
   }
 
   async approveMealPlan(planId, modifications = null) {
-    const plan = db.data.mealPlans.find(p => p.id === planId);
+    const mealPlans = db.data.mealPlans || [];
+    const plan = mealPlans.find(p => p.id === planId);
     if (!plan) throw new Error('Plan not found');
 
     if (modifications?.meals) {
@@ -352,19 +375,20 @@ CRITICAL: Your entire response must be ONLY a valid JSON object. DO NOT include 
   }
 
   async placeGroceryOrder(planId, pickupTime) {
-    const plan = db.data.mealPlans.find(p => p.id === planId);
+    const mealPlans = db.data.mealPlans || [];
+    const plan = mealPlans.find(p => p.id === planId);
     if (!plan) throw new Error('Plan not found');
     if (plan.status !== 'approved') throw new Error('Plan must be approved first');
 
     // Create cart
-    const cart = await this.instacart.createCart(config.instacart.storeId);
+    const cart = await this.instacart.createCart(configuration.instacart.storeId);
 
     // Search and add items
     const cartItems = [];
     for (const item of plan.shoppingList) {
       const products = await this.instacart.searchProducts(
         item.name,
-        config.instacart.storeId
+        configuration.instacart.storeId
       );
 
       if (products.length > 0) {
@@ -384,6 +408,7 @@ CRITICAL: Your entire response must be ONLY a valid JSON object. DO NOT include 
     const order = await this.instacart.checkout(cart.id, pickupTime);
 
     // Save order info
+    db.data.orders ||= [];
     db.data.orders.push({
       id: Date.now().toString(),
       planId,
@@ -445,13 +470,15 @@ app.post('/api/preferences', async (req, res) => {
 
 // Meal Plans
 app.get('/api/meal-plans', (req, res) => {
-  res.json(db.data.mealPlans.sort((a, b) => 
+  const mealPlans = db.data.mealPlans || [];
+  res.json(mealPlans.sort((a, b) => 
     new Date(b.createdAt) - new Date(a.createdAt)
   ));
 });
 
 app.get('/api/meal-plans/current', (req, res) => {
-  const current = db.data.mealPlans
+  const mealPlans = db.data.mealPlans || [];
+  const current = mealPlans
     .filter(p => ['pending', 'approved'].includes(p.status))
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0];
   res.json(current || null);
@@ -482,13 +509,14 @@ app.post('/api/feedback', async (req, res) => {
     ...req.body,
     timestamp: new Date().toISOString()
   };
+  db.data.feedback ||= [];
   db.data.feedback.push(feedback);
   await db.write();
   res.json(feedback);
 });
 
 app.get('/api/feedback', (req, res) => {
-  res.json(db.data.feedback);
+  res.json(db.data.feedback || []);
 });
 
 // Grocery Orders
@@ -503,14 +531,14 @@ app.post('/api/orders', async (req, res) => {
 });
 
 app.get('/api/orders', (req, res) => {
-  res.json(db.data.orders);
+  res.json(db.data.orders || []);
 });
 
 // Instacart store availability
 app.get('/api/instacart/availability', async (req, res) => {
   try {
     const availability = await service.instacart.getStoreAvailability(
-      config.instacart.storeId
+      configuration.instacart.storeId
     );
     res.json(availability);
   } catch (error) {

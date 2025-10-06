@@ -18,5 +18,98 @@
     "cookingTimeMax": 60,
     "budgetPerWeek": 300,
     "notes": ""
-  }
+  },
+  "mealPlans": [
+    {
+      "id": "1759775088929",
+      "weekStart": "2025-09-29",
+      "meals": [
+        {
+          "day": "Monday",
+          "recipe_name": "Pan-Seared Steak with Garlic Butter",
+          "reason": "A protein-rich, gluten-free dinner that's simple to prepare and avoids all allergens and dislikes."
+        },
+        {
+          "day": "Tuesday",
+          "recipe_name": "Gluten-Free Pizza with Pepperoni",
+          "reason": "Satisfies the pizza preference while using gluten-free crust to accommodate dietary restrictions."
+        },
+        {
+          "day": "Wednesday",
+          "recipe_name": "Grilled Chicken with Roasted Vegetables",
+          "reason": "A balanced, naturally gluten-free meal with lean protein and nutritious vegetables."
+        },
+        {
+          "day": "Thursday",
+          "recipe_name": "Baked Salmon with Rice Pilaf",
+          "reason": "Provides omega-3 fatty acids and is naturally gluten-free with a satisfying rice side."
+        },
+        {
+          "day": "Friday",
+          "recipe_name": "Gluten-Free Margherita Pizza",
+          "reason": "Another pizza option to satisfy preferences while maintaining dietary restrictions."
+        },
+        {
+          "day": "Saturday",
+          "recipe_name": "Pork Tenderloin with Sweet Potato Mash",
+          "reason": "A hearty, gluten-free weekend dinner with naturally sweet and nutritious sides."
+        },
+        {
+          "day": "Sunday",
+          "recipe_name": "Beef Stir-Fry with Rice",
+          "reason": "A quick, gluten-free meal using tamari instead of soy sauce for flavor variety."
+        }
+      ],
+      "notes": "This plan incorporates pizza twice to satisfy preferences while ensuring all meals are gluten-free. Since only 2 recipes were provided, I've suggested 5 additional gluten-free meals that avoid peanuts and provide nutritional variety throughout the week.",
+      "shoppingList": [
+        {
+          "name": "beef steak",
+          "quantity": 2,
+          "unit": "pound",
+          "recipe": "Pan-Seared Steak with Garlic Butter"
+        },
+        {
+          "name": "vegetable oil",
+          "quantity": 0.5,
+          "unit": "tablespoon",
+          "recipe": "Pan-Seared Steak with Garlic Butter"
+        },
+        {
+          "name": "grey sea salt",
+          "quantity": 1.5,
+          "unit": "teaspoon",
+          "recipe": "Pan-Seared Steak with Garlic Butter"
+        },
+        {
+          "name": "black pepper",
+          "quantity": 1,
+          "unit": "teaspoon",
+          "recipe": "Pan-Seared Steak with Garlic Butter"
+        },
+        {
+          "name": "unsalted butter",
+          "quantity": 2,
+          "unit": "tablespoon",
+          "recipe": "Pan-Seared Steak with Garlic Butter"
+        },
+        {
+          "name": "garlic",
+          "quantity": 2,
+          "unit": "clove",
+          "recipe": "Pan-Seared Steak with Garlic Butter"
+        },
+        {
+          "name": "fresh rosemary",
+          "quantity": 1,
+          "unit": "sprig",
+          "recipe": "Pan-Seared Steak with Garlic Butter"
+        }
+      ],
+      "status": "approved",
+      "createdAt": "2025-10-06T18:24:48.929Z",
+      "approvedAt": "2025-10-06T18:31:16.937Z"
+    }
+  ],
+  "feedback": [],
+  "orders": []
 }
