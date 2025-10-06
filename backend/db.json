@@ -1,0 +1,22 @@
+{
+  "preferences": {
+    "familyMembers": [
+      {
+        "name": "me",
+        "allergies": [
+          "gluten"
+        ],
+        "dislikes": [
+          "peanuts"
+        ],
+        "preferences": [
+          "pizza"
+        ]
+      }
+    ],
+    "dietaryRestrictions": [],
+    "cookingTimeMax": 60,
+    "budgetPerWeek": 300,
+    "notes": ""
+  }
+}
